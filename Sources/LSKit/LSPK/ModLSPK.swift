@@ -47,4 +47,8 @@ public struct ModLSPK: LSPK {
     public func contentsOf(entry: LSPKFileEntry) throws -> Data? {
         try base.contentsOf(entry: entry)
     }
+    
+    public func unpack(url: URL) throws {
+        try base.unpack(url: url)
+    }
 }

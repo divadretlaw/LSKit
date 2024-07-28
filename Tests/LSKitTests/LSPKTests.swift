@@ -30,4 +30,11 @@ final class LSPKTests: XCTestCase {
         XCTAssertEqual(publishVersion.name, "Gold Weight Zero")
         XCTAssertEqual(publishVersion.folder, "Gold Weight Zero")
     }
+    
+    func testUnpack() throws {
+        let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
+        let data = try ModLSPK(url: url)
+        
+        try data.unpack(url: URL.homeDirectory.appendingPathComponent("mod"))
+    }
 }

@@ -15,5 +15,7 @@ public protocol LSPK: Hashable, Equatable, Sendable {
     var entries: [LSPKFileEntry] { get }
     
     init?(url: URL) throws
+    
     func contentsOf(entry: LSPKFileEntry) throws -> Data?
+    func unpack(url: URL) throws
 }

@@ -31,14 +31,13 @@ public struct BaseLSPK: LSPK {
         self.url = url
         
         var offset: UInt64 = 0
-        let signature = try fileHandle.read(fromByteOffset: offset, type: UInt32.self) ?? 0
-        offset.move(by: UInt32.self)
         
+        let signature = try fileHandle.read(fromByteOffset: offset, type: UInt32.self) ?? 0
         // Check signature ("LSPK")
         guard signature.bigEndian == 0x4C53504B else {
             throw LSPKError.invalidFile("Invalid LSPK file signature. Abort.")
         }
-        
+        offset.move(by: UInt32.self)
         self.signature = signature
         
         guard let version = try fileHandle.read(fromByteOffset: offset, type: LSPKVersion.self) else {
@@ -72,6 +71,16 @@ public struct BaseLSPK: LSPK {
             return try compressed.decompressed(using: .lz4raw(Int(entry.uncompressedSize)))
         case .zstd:
             throw LSPKError.notSupported("Compression Method ZSTD is currently not supported")
+        }
+    }
+    
+    public func unpack(url: URL) throws {
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        for entry in entries {
+            guard let content = try contentsOf(entry: entry) else { continue }
+            let file = url.appendingPathComponent(entry.name)
+            try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try content.write(to: file)
         }
     }
 }
