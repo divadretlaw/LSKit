@@ -12,7 +12,7 @@ public enum LSPKError: Swift.Error, LocalizedError {
     case invalidFile(String)
     /// The file relies on a feature that is currently not yet supported.
     case notSupported(String)
-    
+
     public var errorDescription: String? {
         switch self {
         case let .invalidFile(description):

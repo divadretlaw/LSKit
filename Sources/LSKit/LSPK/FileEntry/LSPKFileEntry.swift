@@ -27,11 +27,11 @@ public struct LSPKFileEntry: Hashable, Equatable, Sendable {
     public let sizeOnDisk: UInt64
     /// The uncompressed size of the file entry
     public let uncompressedSize: UInt64
-    
+
     static func read(_ version: LSPKVersion, data: [Data]) throws -> [LSPKFileEntry] {
         let decoder = BinaryDecoder()
         decoder.stringDecodingStrategy = .fixedSize(256)
-        
+
         return switch version {
         case .v10:
             try data
@@ -47,33 +47,29 @@ public struct LSPKFileEntry: Hashable, Equatable, Sendable {
                 .map { LSPKFileEntry(entry: $0) }
         }
     }
-    
+
     static func read(_ version: LSPKVersion, from fileHandle: FileHandle, with offset: UInt64) throws -> [LSPKFileEntry] {
-        var offset = offset
-        
+        try fileHandle.seek(toOffset: offset)
+
         if version.hasCompressedFileEntryList {
-            let numberOfFiles = try fileHandle.read(fromByteOffset: offset, type: UInt32.self) ?? 0
-            offset.move(by: UInt32.self)
-            
+            let numberOfFiles = try fileHandle.read(type: UInt32.self) ?? 0
+
             let decompressedSize = version.fileEntryType.size * Int(numberOfFiles)
-            
-            try fileHandle.seek(toOffset: offset)
-            let compressedSize = try fileHandle.read(fromByteOffset: offset, type: UInt32.self) ?? 0
-            offset.move(by: UInt32.self)
-            
-            try fileHandle.seek(toOffset: offset)
+
+            let compressedSize = try fileHandle.read( type: UInt32.self) ?? 0
+
             guard let compressed = try fileHandle.read(upToCount: Int(compressedSize)) else {
                 throw CocoaError(.fileReadUnknown)
             }
-            
+
             let decompressed = try compressed.decompressed(using: .lz4raw(decompressedSize))
-            
+
             return try read(version, data: decompressed.chunked(size: version.fileEntryType.size))
         } else {
             guard let data = try fileHandle.readToEnd() else {
                 throw CocoaError(.fileReadUnknown)
             }
-            
+
             return try read(version, data: data.chunked(size: version.fileEntryType.size))
         }
     }

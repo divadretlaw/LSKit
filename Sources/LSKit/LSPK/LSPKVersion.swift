@@ -12,11 +12,11 @@ public enum LSPKVersion: UInt32, Codable, Sendable {
     case v15 = 15
     case v16 = 16
     case v18 = 18
-    
+
     var hasCompressedFileEntryList: Bool {
         rawValue > 13
     }
-    
+
     var fileEntryType: LSPKFileEntryRepresentable.Type {
         switch self {
         case .v10:

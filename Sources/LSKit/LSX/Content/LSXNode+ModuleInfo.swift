@@ -12,13 +12,13 @@ extension LSXNode {
         public let publishVersion: PublishVersion?
         public let scripts: LSXNode?
         public let targetModes: LSXNode?
-        
+
         public let raw: LSXNode
-        
+
         init?(node: LSXNode?) {
             guard let node else { return nil }
             self.raw = node
-            
+
             let publishVersion = node.children.first { $0.id == "PublishVersion" }
             self.publishVersion = PublishVersion(node: publishVersion)
             self.scripts = node.children.first { $0.id == "Scripts" }

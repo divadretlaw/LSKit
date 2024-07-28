@@ -14,7 +14,7 @@ extension LSPKFileEntry {
         case `default` = 0x20
         case max = 0x40
     }
-    
+
     /// Compression methods for LSKP file entries
     public enum CompressionMethod: UInt8, Hashable, Equatable, Sendable {
         case none = 0x00

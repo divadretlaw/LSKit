@@ -15,7 +15,7 @@ struct LSPKHeader10: Hashable, Equatable, Codable, Sendable {
     let flags: UInt8
     let priority: UInt8
     let numberOfFiles: UInt32
-    
+
     init?(header: LSPKHeader) {
         guard let dataOffset = header.dataOffset, let numberOfFiles = header.numberOfFiles else { return nil }
         self.dataOffset = UInt32(dataOffset)

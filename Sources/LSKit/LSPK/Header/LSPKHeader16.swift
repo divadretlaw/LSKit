@@ -15,7 +15,7 @@ struct LSPKHeader16: Hashable, Equatable, Codable, Sendable {
     let priority: UInt8
     let md5: MD5
     let numberOfParts: UInt16
-    
+
     init?(header: LSPKHeader) {
         self.fileListOffset = header.fileListOffset
         self.fileListSize = header.fileListSize

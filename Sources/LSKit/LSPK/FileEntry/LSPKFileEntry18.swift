@@ -11,7 +11,7 @@ struct LSPKFileEntry18: LSPKFileEntryRepresentable, Hashable, Equatable, Codable
     static var size: Int {
         272
     }
-    
+
     let name: String
     let offsetInFile1: UInt32
     let offsetInFile2: UInt16

@@ -11,31 +11,31 @@ import BinaryUtils
 public struct ModLSPK: LSPKProtocol {
     private let base: LSPK
     public let meta: LSX.Config
-    
+
     public var url: URL {
         base.url
     }
-    
+
     public var signature: UInt32 {
         base.signature
     }
-    
+
     public var version: LSPKVersion {
         base.version
     }
-    
+
     public var header: LSPKHeader {
         base.header
     }
-    
+
     public var entries: [LSPKFileEntry] {
         base.entries
     }
-    
+
     public init(url: URL) throws {
         let base = try LSPK(url: url)
         self.base = base
-        
+
         guard let entry = base.entries.first(where: { $0.name.hasSuffix("meta.lsx") }) else {
             throw LSPKError.invalidFile("PAK does not contain 'meta.lsx'")
         }
@@ -47,11 +47,11 @@ public struct ModLSPK: LSPKProtocol {
         }
         self.meta = config
     }
-    
+
     public func contentsOf(entry: LSPKFileEntry) throws -> Data? {
         try base.contentsOf(entry: entry)
     }
-    
+
     public func unpack(url: URL) throws {
         try base.unpack(url: url)
     }

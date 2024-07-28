@@ -11,24 +11,24 @@ public struct LSXNode: Hashable, Equatable, Codable, Sendable, XmlConvertible, C
     public let id: String
     public let attributes: [LSXAttribute]
     public let children: [LSXNode]
-    
+
     init(id: String, attributes: [LSXAttribute], children: [LSXNode]) {
         self.id = id
         self.attributes = attributes
         self.children = children
     }
-    
+
     // MARK: - XmlConvertible
-    
+
     public func xml() -> String {
         let attributes = attributes
             .map { value in
                 value.xml()
             }
             .joined(separator: "\n")
-        
+
         let children = xmlChildren()
-        
+
         return """
         <node id=\"\(id)\">
         \(attributes.indent())
@@ -36,7 +36,7 @@ public struct LSXNode: Hashable, Equatable, Codable, Sendable, XmlConvertible, C
         </node>
         """
     }
-    
+
     private func xmlChildren() -> String {
         guard !children.isEmpty else { return "" }
         let children = children
@@ -44,16 +44,16 @@ public struct LSXNode: Hashable, Equatable, Codable, Sendable, XmlConvertible, C
                 value.xml()
             }
             .joined(separator: "\n")
-        
+
         return """
         <children>
         \(children.indent())
         </children>
         """
     }
-    
+
     // MARK: - CustomStringConvertible
-    
+
     public var description: String {
         "Node \(id): attributes=\(attributes) children=\(children)"
     }

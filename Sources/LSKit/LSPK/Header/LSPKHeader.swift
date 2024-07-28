@@ -16,12 +16,12 @@ public struct LSPKHeader: Hashable, Equatable, Sendable {
     public let flags: UInt8
     public let priority: UInt8
     public let md5: MD5
-    
+
     public let numberOfParts: Int
-    
+
     public let numberOfFiles: Int?
     public let dataOffset: Int?
-    
+
     init(
         fileListOffset: UInt64,
         fileListSize: UInt32,
@@ -41,13 +41,12 @@ public struct LSPKHeader: Hashable, Equatable, Sendable {
         self.numberOfFiles = numberOfFiles
         self.dataOffset = dataOffset
     }
-    
-    
+
     static func read(_ version: LSPKVersion, from fileHandle: FileHandle, with offset: UInt64) throws -> LSPKHeader {
         try fileHandle.seek(toOffset: offset)
-        
+
         let decoder = BinaryDecoder()
-        
+
         switch version {
         case .v10:
             let header10 = try decoder.decode(LSPKHeader10.self, from: fileHandle)

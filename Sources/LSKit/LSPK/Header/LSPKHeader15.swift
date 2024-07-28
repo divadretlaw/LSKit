@@ -14,7 +14,7 @@ struct LSPKHeader15: Hashable, Equatable, Codable, Sendable {
     let flags: UInt8
     let priority: UInt8
     let md5: MD5
-    
+
     init?(header: LSPKHeader) {
         guard header.numberOfParts == 1 else { return nil }
         self.fileListOffset = header.fileListOffset

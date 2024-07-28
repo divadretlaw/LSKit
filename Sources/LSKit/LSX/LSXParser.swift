@@ -11,14 +11,14 @@ final class LSXParser: NSObject, XMLParserDelegate {
     enum Element {
         case save
         case version
-        
+
         case region(LSXRegion)
-        
+
         case node(LSXNode)
-        
+
         case children([LSXNode])
         case attribute
-        
+
         init?(elementName: String, id: String?) {
             switch elementName {
             case "save":
@@ -40,41 +40,41 @@ final class LSXParser: NSObject, XMLParserDelegate {
             }
         }
     }
-    
+
     var result: LSX?
-    
+
     private var path: [Element]
-    
+
     private var version: LSXVersion
     private var regions: [LSXRegion]
-    
+
     private var currentAttributes: [LSXAttribute] = []
-    
+
     override init() {
         self.path = []
-        
+
         self.version = .empty
         self.regions = []
-        
+
         super.init()
     }
-    
+
     func parserDidEndDocument(_ parser: XMLParser) {
         result = LSX(version: version, regions: regions)
     }
-    
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+
+    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
         guard let element = Element(elementName: elementName, id: attributeDict["id"]) else {
             parser.abortParsing()
             return
         }
-        
+
         self.parser(parser, didStartElement: element, namespaceURI: namespaceURI, qualifiedName: qName, attributes: attributeDict)
     }
-    
-    private func parser(_ parser: XMLParser, didStartElement element: Element, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+
+    private func parser(_ parser: XMLParser, didStartElement element: Element, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
         path.append(element)
-        
+
         switch element {
         case .version:
             version = LSXVersion(attributes: attributeDict)
@@ -86,10 +86,10 @@ final class LSXParser: NSObject, XMLParserDelegate {
             return
         }
     }
-    
+
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         guard let element = path.popLast() else { return }
-        
+
         switch element {
         case let .node(node):
             let updatedNode = LSXNode(id: node.id, attributes: currentAttributes.consume(), children: node.children)
@@ -131,12 +131,12 @@ private extension Array {
     func parent() -> Element? {
         self.dropLast().last
     }
-    
+
     mutating func replaceLast(_ element: Element) {
         _ = popLast()
         append(element)
     }
-    
+
     mutating func consume() -> Self {
         let copy = self
         self = []
