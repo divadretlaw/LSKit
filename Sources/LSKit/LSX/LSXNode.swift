@@ -20,7 +20,7 @@ public struct LSXNode: Hashable, Equatable, Codable, Sendable, XmlConvertible, C
     
     // MARK: - XmlConvertible
     
-    func xml() -> String {
+    public func xml() -> String {
         let attributes = attributes
             .map { value in
                 value.xml()

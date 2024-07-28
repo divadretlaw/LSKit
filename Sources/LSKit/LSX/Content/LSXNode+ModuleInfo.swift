@@ -9,9 +9,9 @@ import Foundation
 
 extension LSXNode {
     public struct ModuleInfo: Hashable, Equatable, Sendable {
-        let publishVersion: PublishVersion?
-        let scripts: LSXNode?
-        let targetModes: LSXNode?
+        public let publishVersion: PublishVersion?
+        public let scripts: LSXNode?
+        public let targetModes: LSXNode?
         
         public let raw: LSXNode
         

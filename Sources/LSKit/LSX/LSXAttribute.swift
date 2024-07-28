@@ -21,7 +21,7 @@ public struct LSXAttribute: Hashable, Equatable, Codable, Sendable, XmlConvertib
     
     // MARK: - XmlConvertible
     
-    func xml() -> String {
+    public func xml() -> String {
         "<attribute id=\"\(id)\" type=\"\(type)\" value=\"\(value)\"/>"
     }
     

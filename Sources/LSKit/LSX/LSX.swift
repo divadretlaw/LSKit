@@ -7,7 +7,15 @@
 
 import Foundation
 
-public struct LSX: Hashable, Equatable, Codable, Sendable, XmlConvertible {
+public protocol LSXProtocol: Hashable, Equatable, Sendable, XmlConvertible {
+    var version: LSXVersion { get }
+    var regions: [LSXRegion] { get }
+    
+    init?(url: URL) throws
+    init?(data: Data)
+}
+
+public struct LSX: LSXProtocol, Codable {
     public let version: LSXVersion
     public let regions: [LSXRegion]
     
@@ -37,7 +45,7 @@ public struct LSX: Hashable, Equatable, Codable, Sendable, XmlConvertible {
     
     // MARK: - XmlConvertible
     
-    func xml() -> String {
+    public func xml() -> String {
         let regions = regions
             .map { value in
                 value.xml()

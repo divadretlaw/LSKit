@@ -23,8 +23,20 @@ final class LSXTests: XCTestCase {
         XCTAssertEqual(firstMod.attributes.first { $0.id == "UUID" }?.value, "28ac9ce2-2aba-8cda-b3b5-6e922f71b6b8")
         XCTAssertEqual(firstMod.attributes.first { $0.id == "Name" }?.value, "GustavDev")
         XCTAssertEqual(firstMod.attributes.first { $0.id == "Folder" }?.value, "GustavDev")
+    }
+    
+    func testRegionModuleSettings() throws {
+        let url = try XCTUnwrap(Bundle.module.url(forResource: "modsettings", withExtension: "lsx"))
+        let lsx = try XCTUnwrap(LSX(url: url))
+        let moduleSettings = try XCTUnwrap(LSX.ModuleSettings(lsx: lsx))
         
-        print(lsx.xml())
+        let firstModOrder = try XCTUnwrap(moduleSettings.modOrder.first)
+        XCTAssertEqual(firstModOrder.uuid, "28ac9ce2-2aba-8cda-b3b5-6e922f71b6b8")
+        
+        let firstMod = try XCTUnwrap(moduleSettings.mods.first)
+        XCTAssertEqual(firstMod.uuid, "28ac9ce2-2aba-8cda-b3b5-6e922f71b6b8")
+        XCTAssertEqual(firstMod.name, "GustavDev")
+        XCTAssertEqual(firstMod.folder, "GustavDev")
     }
     
     func testMeta() throws {

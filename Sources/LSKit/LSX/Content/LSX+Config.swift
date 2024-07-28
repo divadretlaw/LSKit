@@ -12,10 +12,13 @@ extension LSX {
         public let dependencies: LSXNode?
         public let moduleInfo: LSXNode.ModuleInfo?
         
+        public let raw: LSXNode
+        
         init?(lsx: LSX) {
             let rootNode = lsx.regions
                 .first { $0.id == "Config" }?.nodes.first { $0.id == "root" }
             guard let rootNode else { return nil }
+            self.raw = rootNode
             
             self.dependencies = rootNode.children.first { $0.id == "Dependencies" }
             let moduleInfo = rootNode.children.first { $0.id == "ModuleInfo" }

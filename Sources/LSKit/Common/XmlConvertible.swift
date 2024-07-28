@@ -7,6 +7,7 @@
 
 import Foundation
 
-protocol XmlConvertible {
+public protocol XmlConvertible {
+    /// A XML representation of this instance.
     func xml() -> String
 }

@@ -4,7 +4,7 @@ import XCTest
 final class LSPKTests: XCTestCase {
     func testModFixer() throws {
         let url = try XCTUnwrap(Bundle.module.url(forResource: "ModFixer", withExtension: "pak"))
-        let data = try BaseLSPK(url: url)
+        let data = try LSPK(url: url)
         
         XCTAssertEqual(data.version, .v15)
         XCTAssertEqual(data.header.parts, 1)
