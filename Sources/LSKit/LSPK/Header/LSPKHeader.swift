@@ -8,7 +8,9 @@
 import Foundation
 import BinaryUtils
 
+/// The header of an LSPK file contains metadata needed to read the LSPK file
 public struct LSPKHeader: Hashable, Equatable, Sendable {
+    /// The offset of the file entry list
     public let fileListOffset: UInt64
     public let fileListSize: UInt32
     public let flags: UInt8

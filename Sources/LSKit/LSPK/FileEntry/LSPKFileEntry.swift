@@ -12,14 +12,20 @@ public protocol LSPKFileEntryRepresentable {
     static var size: Int { get }
 }
 
+/// A LSPK file entry contains metadata needed to read the actual files contained in the LSPK file
 public struct LSPKFileEntry: Hashable, Equatable, Sendable {
+    /// The path of the file entry
     public let name: String
     public let archivePart: UInt32
     public let crc: UInt32
+    /// The compression method used to compress the file entry
     public let compressionMethod: CompressionMethod
+    /// The compression level used to compress the file entry
     public let compressionLevel: CompressionLevel
     public let offsetInFile: UInt64
+    /// The size on disk of the file entry
     public let sizeOnDisk: UInt64
+    /// The uncompressed size of the file entry
     public let uncompressedSize: UInt64
     
     static func read(_ version: LSPKVersion, data: [Data]) throws -> [LSPKFileEntry] {

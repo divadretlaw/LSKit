@@ -7,19 +7,46 @@
 
 import Foundation
 
+
 public protocol LSPKProtocol: Hashable, Equatable, Sendable {
+    /// The location of the file
+    var url: URL { get }
+    /// The signature of the LSPK file. Must be "LSPK"
     var signature: UInt32 { get }
+    /// The version of the LSPK file
     var version: LSPKVersion { get }
     
+    /// The header of the LSPK file
     var header: LSPKHeader { get }
+    /// The file entries in the LSPK file
     var entries: [LSPKFileEntry] { get }
     
-    init?(url: URL) throws
+    /// Load the LSPK file from the given url
+    /// 
+    /// - Parameter url: The location of the file
+    init(url: URL) throws
     
+    /// Read the content of the given file entry
+    ///
+    /// - Parameter entry: The file entry to read from.
+    ///
+    /// - Returns: The data of the file entry.
     func contentsOf(entry: LSPKFileEntry) throws -> Data?
+    
+    /// Unpack the LSPK to the given location
+    ///
+    /// - Parameter url: The location where the unpacked data should be
     func unpack(url: URL) throws
 }
 
+public extension LSPKProtocol {
+    init?(url: URL?) throws {
+        guard let url else { return nil }
+        try self.init(url: url)
+    }
+}
+
+/// A LSPK file
 public struct LSPK: LSPKProtocol {
     public let url: URL
     
@@ -28,11 +55,6 @@ public struct LSPK: LSPKProtocol {
     
     public let header: LSPKHeader
     public let entries: [LSPKFileEntry]
-    
-    public init?(url: URL?) throws {
-        guard let url else { return nil }
-        try self.init(url: url)
-    }
     
     public init(url: URL) throws {
         let fileHandle = try FileHandle(forReadingFrom: url)

@@ -12,6 +12,10 @@ public struct ModLSPK: LSPKProtocol {
     private let base: LSPK
     public let meta: LSX.Config
     
+    public var url: URL {
+        base.url
+    }
+    
     public var signature: UInt32 {
         base.signature
     }

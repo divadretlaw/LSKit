@@ -8,12 +8,14 @@
 import Foundation
 
 extension LSPKFileEntry {
+    /// Compression levels for LSKP file entries
     public enum CompressionLevel: UInt8, Hashable, Equatable, Sendable {
         case fast = 0x10
         case `default` = 0x20
         case max = 0x40
     }
     
+    /// Compression methods for LSKP file entries
     public enum CompressionMethod: UInt8, Hashable, Equatable, Sendable {
         case none = 0x00
         case zlib = 0x01
