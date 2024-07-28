@@ -68,7 +68,7 @@ public struct LSPKFileEntry: Hashable, Equatable, Sendable {
                 throw CocoaError(.fileReadUnknown)
             }
             
-            return try read(version, data: [data])
+            return try read(version, data: data.chunked(size: version.fileEntryType.size))
         }
     }
 }

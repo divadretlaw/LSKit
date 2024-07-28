@@ -15,6 +15,17 @@ struct LSPKHeader10: Hashable, Equatable, Codable, Sendable {
     let flags: UInt8
     let priority: UInt8
     let numberOfFiles: UInt32
+    
+    init?(header: LSPKHeader) {
+        guard let dataOffset = header.dataOffset, let numberOfFiles = header.numberOfFiles else { return nil }
+        self.dataOffset = UInt32(dataOffset)
+        self.fileListSize = header.fileListSize
+        guard let parts = UInt16(exactly: header.numberOfParts) else { return nil }
+        self.numberOfParts = parts
+        self.flags = header.flags
+        self.priority = header.priority
+        self.numberOfFiles = UInt32(numberOfFiles)
+    }
 }
 
 extension LSPKHeader {
@@ -24,6 +35,8 @@ extension LSPKHeader {
         self.flags = header.flags
         self.priority = header.priority
         self.md5 = MD5()
-        self.parts = 1
+        self.numberOfParts = Int(header.numberOfParts)
+        self.numberOfFiles = Int(header.numberOfFiles)
+        self.dataOffset = Int(header.dataOffset)
     }
 }
