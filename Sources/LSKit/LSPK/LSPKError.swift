@@ -7,9 +7,18 @@
 
 import Foundation
 
-public enum LSPKError: Swift.Error {
+public enum LSPKError: Swift.Error, LocalizedError {
+    /// The provided file is invalid.
     case invalidFile(String)
-    case versionNotSupported
-    case decompressionFailed(String)
+    /// The file relies on a feature that is currently not yet supported.
     case notSupported(String)
+    
+    public var errorDescription: String? {
+        switch self {
+        case let .invalidFile(description):
+            return description
+        case let .notSupported(description):
+            return description
+        }
+    }
 }

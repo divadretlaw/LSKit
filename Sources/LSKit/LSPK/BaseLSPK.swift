@@ -42,7 +42,7 @@ public struct BaseLSPK: LSPK {
         self.signature = signature
         
         guard let version = try fileHandle.read(fromByteOffset: offset, type: LSPKVersion.self) else {
-            throw LSPKError.versionNotSupported
+            throw LSPKError.notSupported("This specific version is not supported.")
         }
         offset.move(by: version)
         self.version = version
