@@ -7,7 +7,6 @@
 
 import Foundation
 import BinaryUtils
-import Compression
 
 public protocol LSPKFileEntryRepresentable {
     static var size: Int { get }
@@ -61,7 +60,7 @@ public struct LSPKFileEntry: Hashable, Equatable, Sendable {
                 throw CocoaError(.fileReadUnknown)
             }
             
-            let decompressed = try compressed.decompressed(size: decompressedSize, algorithm: COMPRESSION_LZ4_RAW)
+            let decompressed = try compressed.decompressed(using: .lz4raw(decompressedSize))
             
             return try read(version, data: decompressed.chunked(size: version.fileEntryType.size))
         } else {

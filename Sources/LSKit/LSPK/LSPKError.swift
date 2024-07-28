@@ -11,4 +11,5 @@ public enum LSPKError: Swift.Error {
     case invalidFile(String)
     case versionNotSupported
     case decompressionFailed(String)
+    case notSupported(String)
 }

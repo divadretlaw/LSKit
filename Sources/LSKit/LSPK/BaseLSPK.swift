@@ -57,13 +57,21 @@ public struct BaseLSPK: LSPK {
             try? fileHandle.close()
         }
         
-        if let algorithm = entry.compressionMethod.algorithm {
+        switch entry.compressionMethod {
+        case .none:
+            return try fileHandle.read(fromByteOffset: entry.offsetInFile, upToCount: entry.sizeOnDisk)
+        case .zlib:
             guard let compressed = try fileHandle.read(fromByteOffset: entry.offsetInFile, upToCount: entry.sizeOnDisk) else {
                 return nil
             }
-            return try compressed.decompressed(size: Int(entry.uncompressedSize), algorithm: algorithm)
-        } else {
-            return try fileHandle.read(fromByteOffset: entry.offsetInFile, upToCount: entry.sizeOnDisk)
+            return try compressed.decompressed(using: .zlib)
+        case .lz4:
+            guard let compressed = try fileHandle.read(fromByteOffset: entry.offsetInFile, upToCount: entry.sizeOnDisk) else {
+                return nil
+            }
+            return try compressed.decompressed(using: .lz4raw(Int(entry.uncompressedSize)))
+        case .zstd:
+            throw LSPKError.notSupported("Compression Method ZSTD is currently not supported")
         }
     }
 }

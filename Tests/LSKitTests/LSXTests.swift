@@ -1,6 +1,5 @@
 import XCTest
 @testable import LSKit
-import Compression
 
 final class LSXTests: XCTestCase {
     func testModSettings() throws {
