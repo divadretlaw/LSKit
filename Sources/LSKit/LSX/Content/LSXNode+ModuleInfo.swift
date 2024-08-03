@@ -8,11 +8,13 @@
 import Foundation
 
 extension LSXNode {
+    /// Information about the mod
     public struct ModuleInfo: Hashable, Equatable, Sendable {
+        /// Publish version information about the mod
         public let publishVersion: PublishVersion?
         public let scripts: LSXNode?
         public let targetModes: LSXNode?
-
+        /// The raw representation of the node
         public let raw: LSXNode
 
         init?(node: LSXNode?) {

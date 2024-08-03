@@ -8,13 +8,19 @@
 import Foundation
 
 extension LSXNode {
+    /// A `ModuleShortDesc` within `Mods` in the `modsettings.lsx`
     public struct ModuleShortDesc: Hashable, Equatable, Sendable {
+        /// The UUID of the mod
         public let uuid: String?
+        /// The name of the mod
         public let name: String?
+        /// The folder of the mod
         public let folder: String?
+        /// The MD5 hash of the mod
         public let md5: String?
+        /// The version of the mod
         public let version64: String?
-
+        /// The raw representation of the node
         public let raw: LSXNode
 
         init?(node: LSXNode?) {

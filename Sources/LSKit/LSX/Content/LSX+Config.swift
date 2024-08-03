@@ -8,10 +8,22 @@
 import Foundation
 
 extension LSX {
+    /// Convenience representation of an ``LSX`` containing
+    ///
+    /// ```xml
+    /// <region id="Config">
+    ///     <node id="root">...</node>
+    /// </region>
+    /// ```
+    ///
+    /// > For Example:
+    /// > Mods in LSPK format contain a `meta.lsx` file in this format
     public struct Config: Hashable, Equatable, Sendable {
+        /// Dependencies of the module
         public let dependencies: LSXNode?
+        /// The ``LSXNode/ModuleInfo`` containg information about the module
         public let moduleInfo: LSXNode.ModuleInfo?
-
+        /// The raw representation of the node
         public let raw: LSXNode
 
         init?(lsx: LSX) {

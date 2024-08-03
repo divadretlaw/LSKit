@@ -9,6 +9,7 @@ import Foundation
 import BinaryUtils
 
 public protocol LSPKFileEntryRepresentable {
+    /// The binary size of the file entry
     static var size: Int { get }
 }
 

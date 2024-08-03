@@ -8,10 +8,18 @@
 import Foundation
 
 public protocol LSXProtocol: Hashable, Equatable, Sendable, XmlConvertible {
+    /// The version of the ``LSX`` file
     var version: LSXVersion { get }
+    /// The region nodes of the ``LSX`` files
     var regions: [LSXRegion] { get }
 
-    init?(url: URL) throws
+    /// Load a LSX from the given url
+    /// - Parameter data: The url to read from.
+    /// - Returns: The loaded ``LSX`` or `nil` if the given data couldn't read or parsed
+    init?(url: URL)
+    /// Load a LSX from the given data
+    /// - Parameter data: The data to read from.
+    /// - Returns: The loaded ``LSX`` or `nil` if the given data couldn't be parsed
     init?(data: Data)
 }
 
@@ -19,9 +27,13 @@ public struct LSX: LSXProtocol, Codable {
     public let version: LSXVersion
     public let regions: [LSXRegion]
 
-    public init?(url: URL) throws {
-        let data = try Data(contentsOf: url)
-        self.init(data: data)
+    public init?(url: URL) {
+        do {
+            let data = try Data(contentsOf: url)
+            self.init(data: data)
+        } catch {
+            return nil
+        }
     }
 
     public init?(data: Data) {

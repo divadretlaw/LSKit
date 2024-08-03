@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// The version of an ``LSX`` file
 public struct LSXVersion: Hashable, Equatable, Codable, Sendable, XmlConvertible, CustomStringConvertible {
     public let major: String?
     public let minor: String?

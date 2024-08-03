@@ -8,10 +8,23 @@
 import Foundation
 
 extension LSX {
+    /// Convenience representation of an ``LSX`` containing
+    ///
+    /// ```xml
+    /// <region id="ModuleSettings">
+    ///     <node id="root">...</node>
+    /// </region>
+    /// ```
+    ///
+    /// > For Example:
+    /// > The user mod settings (`modsettings.lsx`) are in this format
     public struct ModuleSettings: Hashable, Equatable, Sendable {
+        /// The mod order
         public let modOrder: [LSXNode.Module]
+        /// The list of mods
         public let mods: [LSXNode.ModuleShortDesc]
 
+        /// The raw representation of the node
         public let raw: LSXNode
 
         init?(lsx: LSX) {

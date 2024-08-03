@@ -7,9 +7,13 @@
 
 import Foundation
 
+/// A node object of `attribute` in an ``LSX`` file
 public struct LSXAttribute: Hashable, Equatable, Codable, Sendable, XmlConvertible, CustomStringConvertible {
+    /// The id of the node
     public let id: String
+    /// The value of the node
     public let value: String
+    /// The type of the node
     public let type: String
 
     public init?(attributes: [String: String]) {

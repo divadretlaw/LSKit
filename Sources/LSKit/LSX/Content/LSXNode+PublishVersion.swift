@@ -8,16 +8,24 @@
 import Foundation
 
 extension LSXNode {
+    /// The publish version information of a mod
     public struct PublishVersion: Hashable, Equatable, Sendable {
+        /// The UUID of the mod
         public let uuid: String?
+        /// The MD5 hash of the mod
         public let md5: String?
+        /// The name of the mod
         public let name: String?
+        /// The description of the mod
         public let description: String?
+        /// The folder of the mod
         public let folder: String?
-
+        /// The author of the mod
         public let author: String?
+        /// The version of the mod
         public let version: String?
-
+        
+        /// The raw representation of the node
         public let raw: LSXNode
 
         init?(node: LSXNode?) {

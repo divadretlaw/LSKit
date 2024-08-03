@@ -7,8 +7,11 @@
 
 import Foundation
 
+/// A node object of `region` in an ``LSX`` file
 public struct LSXRegion: Hashable, Equatable, Codable, Sendable, XmlConvertible, CustomStringConvertible {
+    /// The id of the node
     public let id: String
+    /// The children of the node
     public let nodes: [LSXNode]
 
     init(id: String) {

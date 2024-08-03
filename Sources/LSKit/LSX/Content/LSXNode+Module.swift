@@ -8,9 +8,13 @@
 import Foundation
 
 extension LSXNode {
+    /// A `Module` within `ModOrder` in the `modsettings.lsx`
+    ///
+    /// This is used to determine the load order of the mods
     public struct Module: Hashable, Equatable, Sendable {
+        /// The UUID of the mod
         public let uuid: String?
-
+        /// The raw representation of the node
         public let raw: LSXNode
 
         init?(node: LSXNode?) {

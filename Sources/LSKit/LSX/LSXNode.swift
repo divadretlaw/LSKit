@@ -7,9 +7,13 @@
 
 import Foundation
 
+/// A node object of `node` in an ``LSX`` file
 public struct LSXNode: Hashable, Equatable, Codable, Sendable, XmlConvertible, CustomStringConvertible {
+    /// The id of the node
     public let id: String
+    /// The attributes of the node
     public let attributes: [LSXAttribute]
+    /// The children of the node
     public let children: [LSXNode]
 
     init(id: String, attributes: [LSXAttribute], children: [LSXNode]) {
