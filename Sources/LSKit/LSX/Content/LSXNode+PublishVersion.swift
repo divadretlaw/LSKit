@@ -24,7 +24,7 @@ extension LSXNode {
         public let author: String?
         /// The version of the mod
         public let version: String?
-        
+
         /// The raw representation of the node
         public let raw: LSXNode
 

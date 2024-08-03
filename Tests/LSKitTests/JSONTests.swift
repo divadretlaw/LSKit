@@ -27,7 +27,7 @@ final class JSONTests: XCTestCase {
         XCTAssertEqual(modInfo.mods.count, 1)
         XCTAssertEqual(modInfo.md5, MD5(md5String: "09f7e02f1290be211da707a266f153b3"))
     }
-    
+
     func testModInfoEncode() throws {
         let md5 = try XCTUnwrap(MD5(md5String: "09f7e02f1290be211da707a266f153b3"))
         let mod = ModInfo.Mod(uuid: UUID(), name: "TestMod", description: "A test mod", folder: "TestMod", version: "1", author: "divadretlaw", created: .now, group: UUID())

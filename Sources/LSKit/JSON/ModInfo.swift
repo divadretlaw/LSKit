@@ -14,27 +14,27 @@ public struct ModInfo: Hashable, Equatable, Codable, Sendable {
     public let mods: [Mod]
     /// The MD5 hash of the mod
     public let md5: MD5
-    
+
     public init(mods: [ModInfo.Mod], md5: MD5) {
         self.mods = mods
         self.md5 = md5
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case mods = "Mods"
         case md5 = "MD5"
     }
-    
+
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+
         self.mods = try container.decode([ModInfo.Mod].self, forKey: .mods)
         self.md5 = try container.decode(MD5.self, forKey: .md5)
     }
-    
+
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        
+
         try container.encode(self.mods, forKey: .mods)
         try container.encode(self.md5, forKey: .md5)
     }
@@ -61,7 +61,7 @@ extension ModInfo {
         // public let dependencies: [Any]
         /// The UUID of the group of the mod
         public let group: UUID?
-        
+
         public init(
             uuid: UUID? = nil,
             name: String? = nil,
@@ -81,7 +81,7 @@ extension ModInfo {
             self.created = created
             self.group = group
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case author = "Author"
             case name = "Name"
@@ -92,7 +92,7 @@ extension ModInfo {
             case created = "Created"
             case group = "Group"
         }
-        
+
         static let dateFormatStyle: Date.ISO8601FormatStyle = {
             Date.ISO8601FormatStyle(
                 dateSeparator: .dash,
@@ -102,10 +102,10 @@ extension ModInfo {
                 includingFractionalSeconds: true
             )
         }()
-        
+
         public init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            
+
             self.author = try container.decodeIfPresent(String.self, forKey: .author)
             self.name = try container.decodeIfPresent(String.self, forKey: .name)
             self.folder = try container.decodeIfPresent(String.self, forKey: .folder)
@@ -119,10 +119,10 @@ extension ModInfo {
             }
             self.group = try container.decodeIfPresent(UUID.self, forKey: .group)
         }
-        
+
         public func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
-            
+
             try container.encodeIfPresent(self.author, forKey: .author)
             try container.encodeIfPresent(self.name, forKey: .name)
             try container.encodeIfPresent(self.folder, forKey: .folder)

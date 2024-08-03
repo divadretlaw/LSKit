@@ -12,7 +12,7 @@ public extension UTType {
     static var lspk: UTType {
         UTType(filenameExtension: "pak", conformingTo: .data) ?? .data
     }
-    
+
     static var lsx: UTType {
         UTType(filenameExtension: "lsx", conformingTo: .xml) ?? .xml
     }
