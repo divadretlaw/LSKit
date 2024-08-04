@@ -34,6 +34,10 @@ public struct ModLSPK: LSPKProtocol {
 
     public init(url: URL) throws {
         let base = try LSPK(url: url)
+        try self.init(base: base)
+    }
+    
+    init(base: LSPK) throws {
         self.base = base
 
         guard let entry = base.entries.first(where: { $0.name.hasSuffix("meta.lsx") }) else {
@@ -54,5 +58,10 @@ public struct ModLSPK: LSPKProtocol {
 
     public func unpack(url: URL) throws {
         try base.unpack(url: url)
+    }
+    
+    public static func pack(to url: URL, from directory: URL, version: LSPKVersion) throws -> Self {
+        let base = try LSPK.pack(to: url, from: directory, version: version)
+        return try ModLSPK(base: base)
     }
 }

@@ -20,6 +20,22 @@ struct LSPKFileEntry15: LSPKFileEntryRepresentable, Hashable, Equatable, Codable
     let flags: UInt32
     let crc: UInt32
     let unknown: UInt32
+
+    init?(entry: LSPKFileEntry) {
+        self.name = entry.name
+        self.offsetInFile = entry.offsetInFile
+        self.sizeOnDisk = entry.sizeOnDisk
+        switch entry.compressionMethod {
+        case .none:
+            self.uncompressedSize = 0
+        default:
+            self.uncompressedSize = entry.uncompressedSize
+        }
+        self.archivePart = entry.archivePart
+        self.flags = UInt32(entry.flags)
+        self.crc = entry.crc
+        self.unknown = 0
+    }
 }
 
 extension LSPKFileEntry {

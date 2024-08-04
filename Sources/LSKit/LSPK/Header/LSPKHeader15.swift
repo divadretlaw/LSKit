@@ -8,7 +8,11 @@
 import Foundation
 import BinaryUtils
 
-struct LSPKHeader15: Hashable, Equatable, Codable, Sendable {
+struct LSPKHeader15: LSPKHeaderRepresentable, Hashable, Equatable, Sendable {
+    static var size: Int {
+        MemoryLayout<Self>.size
+    }
+
     let fileListOffset: UInt64
     let fileListSize: UInt32
     let flags: UInt8
@@ -17,6 +21,7 @@ struct LSPKHeader15: Hashable, Equatable, Codable, Sendable {
 
     init?(header: LSPKHeader) {
         guard header.numberOfParts == 1 else { return nil }
+
         self.fileListOffset = header.fileListOffset
         self.fileListSize = header.fileListSize
         self.flags = header.flags

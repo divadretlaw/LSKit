@@ -1,5 +1,5 @@
 //
-//  LSPK+eader16.swift
+//  LSPKHeader16.swift
 //  LSKit
 //
 //  Created by David Walter on 22.07.24.
@@ -8,7 +8,11 @@
 import Foundation
 import BinaryUtils
 
-struct LSPKHeader16: Hashable, Equatable, Codable, Sendable {
+struct LSPKHeader16: LSPKHeaderRepresentable, Hashable, Equatable, Sendable {
+    static var size: Int {
+        MemoryLayout<Self>.size
+    }
+
     let fileListOffset: UInt64
     let fileListSize: UInt32
     let flags: UInt8

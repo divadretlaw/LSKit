@@ -8,13 +8,15 @@
 import Foundation
 import BinaryUtils
 
-public protocol LSPKFileEntryRepresentable {
+public protocol LSPKFileEntryRepresentable: Codable {
     /// The binary size of the file entry
     static var size: Int { get }
+
+    init?(entry: LSPKFileEntry)
 }
 
 /// A LSPK file entry contains metadata needed to read the actual files contained in the LSPK file
-public struct LSPKFileEntry: Hashable, Equatable, Sendable {
+public struct LSPKFileEntry: Hashable, Equatable, Comparable, Sendable {
     /// The path of the file entry
     public let name: String
     public let archivePart: UInt32
@@ -28,6 +30,10 @@ public struct LSPKFileEntry: Hashable, Equatable, Sendable {
     public let sizeOnDisk: UInt64
     /// The uncompressed size of the file entry
     public let uncompressedSize: UInt64
+
+    var flags: UInt8 {
+        compressionLevel.rawValue | compressionMethod.rawValue
+    }
 
     static func read(_ version: LSPKVersion, data: [Data]) throws -> [LSPKFileEntry] {
         let decoder = BinaryDecoder()
@@ -57,7 +63,7 @@ public struct LSPKFileEntry: Hashable, Equatable, Sendable {
 
             let decompressedSize = version.fileEntryType.size * Int(numberOfFiles)
 
-            let compressedSize = try fileHandle.read( type: UInt32.self) ?? 0
+            let compressedSize = try fileHandle.read(type: UInt32.self) ?? 0
 
             guard let compressed = try fileHandle.read(upToCount: Int(compressedSize)) else {
                 throw CocoaError(.fileReadUnknown)
@@ -73,5 +79,11 @@ public struct LSPKFileEntry: Hashable, Equatable, Sendable {
 
             return try read(version, data: data.chunked(size: version.fileEntryType.size))
         }
+    }
+
+    // MARK: - Comparable
+
+    public static func < (lhs: LSPKFileEntry, rhs: LSPKFileEntry) -> Bool {
+        lhs.name < rhs.name
     }
 }

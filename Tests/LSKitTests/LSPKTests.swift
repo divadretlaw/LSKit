@@ -37,4 +37,24 @@ final class LSPKTests: XCTestCase {
 
         try data.unpack(url: URL.homeDirectory.appendingPathComponent("mod"))
     }
+
+    func testPackAndRead() throws {
+        let directory = URL.homeDirectory.appendingPathComponent("mod")
+        let file = URL.homeDirectory.appendingPathComponent("mod.pak")
+        let generatedPak = try LSPK.pack(to: file, from: directory, version: .v18)
+
+        let readPak = try LSPK(url: generatedPak.url)
+
+        // Check Header
+        XCTAssertEqual(generatedPak.header.fileListOffset, readPak.header.fileListOffset)
+        XCTAssertEqual(generatedPak.header.numberOfParts, readPak.header.numberOfParts)
+        XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
+        // XCTAssertEqual(generatedPak.header.priority, readPak.header.priority)
+        // XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
+        XCTAssertEqual(generatedPak.header.md5, readPak.header.md5)
+        // XCTAssertEqual(generatedPak.header.numberOfFiles, readPak.header.numberOfFiles)
+        // XCTAssertEqual(generatedPak.header.dataOffset, readPak.header.dataOffset)
+        // Check entries
+        XCTAssertEqual(generatedPak.entries.sorted(), readPak.entries.sorted())
+    }
 }

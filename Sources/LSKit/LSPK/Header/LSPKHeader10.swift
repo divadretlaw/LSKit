@@ -1,5 +1,5 @@
 //
-//  LSPKHeader15.swift
+//  LSPKHeader10.swift
 //  LSKit
 //
 //  Created by David Walter on 23.07.24.
@@ -8,7 +8,11 @@
 import Foundation
 import BinaryUtils
 
-struct LSPKHeader10: Hashable, Equatable, Codable, Sendable {
+struct LSPKHeader10: LSPKHeaderRepresentable, Hashable, Equatable, Sendable {
+    static var size: Int {
+        MemoryLayout<Self>.size
+    }
+
     let dataOffset: UInt32
     let fileListSize: UInt32
     let numberOfParts: UInt16
@@ -18,9 +22,12 @@ struct LSPKHeader10: Hashable, Equatable, Codable, Sendable {
 
     init?(header: LSPKHeader) {
         guard let dataOffset = header.dataOffset, let numberOfFiles = header.numberOfFiles else { return nil }
+
         self.dataOffset = UInt32(dataOffset)
         self.fileListSize = header.fileListSize
+
         guard let parts = UInt16(exactly: header.numberOfParts) else { return nil }
+
         self.numberOfParts = parts
         self.flags = header.flags
         self.priority = header.priority

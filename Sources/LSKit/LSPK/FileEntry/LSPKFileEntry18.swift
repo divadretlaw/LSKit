@@ -19,6 +19,19 @@ struct LSPKFileEntry18: LSPKFileEntryRepresentable, Hashable, Equatable, Codable
     let flags: UInt8
     let sizeOnDisk: UInt32
     let uncompressedSize: UInt32
+
+    init?(entry: LSPKFileEntry) {
+        self.name = entry.name
+        self.offsetInFile1 = UInt32(entry.offsetInFile & 0x00000000FFFFFFFF)
+        self.offsetInFile2 = UInt16(entry.offsetInFile >> 32)
+        guard let archivePart = UInt8(exactly: entry.archivePart) else {
+            return nil
+        }
+        self.archivePart = archivePart
+        self.flags = entry.flags
+        self.sizeOnDisk = UInt32(entry.sizeOnDisk)
+        self.uncompressedSize = UInt32(entry.uncompressedSize)
+    }
 }
 
 extension LSPKFileEntry {

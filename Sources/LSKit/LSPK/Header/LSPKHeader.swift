@@ -8,6 +8,13 @@
 import Foundation
 import BinaryUtils
 
+protocol LSPKHeaderRepresentable: Codable {
+    /// The binary size of the file entry
+    static var size: Int { get }
+
+    init?(header: LSPKHeader)
+}
+
 /// The header of an LSPK file contains metadata needed to read the LSPK file
 public struct LSPKHeader: Hashable, Equatable, Sendable {
     /// The offset of the file entry list
@@ -40,6 +47,24 @@ public struct LSPKHeader: Hashable, Equatable, Sendable {
         self.numberOfParts = numberOfParts
         self.numberOfFiles = numberOfFiles
         self.dataOffset = dataOffset
+    }
+
+    static func empty(version: LSPKVersion) -> Self {
+        let flags: UInt8 = if version.hasCompressedFileEntryList {
+            LSPKFileEntry.CompressionMethod.lz4.rawValue | LSPKFileEntry.CompressionLevel.default.rawValue
+        } else {
+            0
+        }
+        return LSPKHeader(
+            fileListOffset: 0,
+            fileListSize: 0,
+            flags: flags,
+            priority: 0,
+            md5: MD5(data: Data()),
+            numberOfParts: 0,
+            numberOfFiles: 0,
+            dataOffset: version.headerType.size + 8
+        )
     }
 
     static func read(_ version: LSPKVersion, from fileHandle: FileHandle, with offset: UInt64) throws -> LSPKHeader {

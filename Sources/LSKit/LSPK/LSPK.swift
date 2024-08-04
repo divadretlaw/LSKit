@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import BinaryUtils
 
 public protocol LSPKProtocol: Hashable, Equatable, Sendable {
     /// The location of the file
@@ -36,6 +37,17 @@ public protocol LSPKProtocol: Hashable, Equatable, Sendable {
     ///
     /// - Parameter url: The location where the unpacked data should be
     func unpack(url: URL) throws
+    
+    /// Pack a directory as LSPK
+    ///
+    /// - Parameters:
+    ///   - url: The destination of the pak file.
+    ///   - directory: The directory the pak file should be created from.
+    ///   - version: The desired version of the pak file.
+    ///
+    /// > Warning:
+    /// > This is a work in progress
+    static func pack(to url: URL, from directory: URL, version: LSPKVersion) throws -> Self
 }
 
 public extension LSPKProtocol {
@@ -54,6 +66,14 @@ public struct LSPK: LSPKProtocol {
 
     public let header: LSPKHeader
     public let entries: [LSPKFileEntry]
+
+    internal init(url: URL, version: LSPKVersion, header: LSPKHeader, entries: [LSPKFileEntry]) {
+        self.url = url
+        self.signature = 0x4C53504B
+        self.version = version
+        self.header = header
+        self.entries = entries
+    }
 
     public init(url: URL) throws {
         let fileHandle = try FileHandle(forReadingFrom: url)
@@ -115,5 +135,115 @@ public struct LSPK: LSPKProtocol {
             try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
             try content.write(to: file)
         }
+    }
+    
+    public static func pack(to url: URL, from directory: URL, version: LSPKVersion) throws -> Self {
+        let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey])
+        guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey], options: [.skipsHiddenFiles], errorHandler: nil) else {
+            throw CocoaError(.fileReadUnknown)
+        }
+
+        try Data().write(to: url, options: [])
+        let pak = try FileHandle(forWritingTo: url)
+        let encoder = BinaryEncoder()
+        encoder.stringEncodingStrategy = .fixedSize(256)
+
+        try pak.write(contentsOf: Data([0x4C, 0x53, 0x50, 0x4B]))
+        try pak.write(contentsOf: encoder.encode(version))
+
+        // Write empty header to reserve space
+        let headerOffset = try pak.offset()
+        guard let actualHeader = version.headerType.init(header: LSPKHeader.empty(version: version)) else {
+            throw LSPKError.invalidFile("Unable to encode header with desired version")
+        }
+        try pak.write(contentsOf: encoder.encode(actualHeader))
+
+        // Write contents of file entries
+        var urls: [URL] = []
+        var entries: [LSPKFileEntry] = []
+        for case let url as URL in enumerator {
+            let resourceValues = try url.resourceValues(forKeys: resourceKeys)
+            guard resourceValues.isDirectory == false else {
+                continue
+            }
+
+            let uncompressedData = try Data(contentsOf: url)
+            let compressedData = try uncompressedData.compressed(using: .lz4raw)
+
+            let offset = try pak.offset()
+            try pak.write(contentsOf: compressedData)
+
+            let crc: UInt32 = if version.hasCrc {
+                0  // TODO: Calculate CRC
+            } else {
+                0
+            }
+
+            let entry = LSPKFileEntry(
+                name: url.path,
+                archivePart: 0, // TODO: What value to set?
+                crc: crc,
+                compressionMethod: version.fileEntryCompressionMethod,
+                compressionLevel: version.fileEntryCompressionLevel,
+                offsetInFile: offset,
+                sizeOnDisk: UInt64(compressedData.count),
+                uncompressedSize: UInt64(uncompressedData.count)
+            )
+            urls.append(url)
+            entries.append(entry)
+        }
+
+        // MD5 is computed over the contents of all files in an alphabetically sorted order
+        let md5 = try MD5(urls: urls.sorted { lhs, rhs in
+            lhs.absoluteString < rhs.absoluteString
+        })
+
+        let fileListOffset = try pak.offset()
+
+        // Write file entries
+        var fileListData = Data()
+        for entry in entries {
+            guard let actualEntry = version.fileEntryType.init(entry: entry) else {
+                throw LSPKError.invalidFile("Unable to encode file entry with desired version")
+            }
+
+            fileListData += try encoder.encode(actualEntry)
+        }
+
+        // Write actual file entry list metadata to reserve space
+        if version.hasCompressedFileEntryList {
+            try pak.write(contentsOf: Data(UInt32(entries.count)))
+            let compressedData = try fileListData.compressed(using: .lz4raw)
+            try pak.write(contentsOf: Data(UInt32(compressedData.count)))
+            try pak.write(contentsOf: compressedData)
+        } else {
+            try pak.write(contentsOf: fileListData)
+        }
+
+        // Write actual header
+        let flags: UInt8 = if version.hasCompressedFileEntryList {
+            LSPKFileEntry.CompressionMethod.lz4.rawValue | LSPKFileEntry.CompressionLevel.default.rawValue
+        } else {
+            0
+        }
+
+        let header = LSPKHeader(
+            fileListOffset: fileListOffset,
+            fileListSize: UInt32(entries.count),
+            flags: flags,
+            priority: 0,
+            md5: md5,
+            numberOfParts: entries.count,
+            numberOfFiles: entries.count,
+            dataOffset: version.headerType.size + 8
+        )
+        guard let actualHeader = version.headerType.init(header: header) else {
+            throw LSPKError.invalidFile("Unable to encode header with desired version")
+        }
+        try pak.seek(toOffset: headerOffset)
+        try pak.write(contentsOf: encoder.encode(actualHeader))
+
+        // Create LSPK instance
+        return Self(url: url, version: version, header: header, entries: entries)
     }
 }
