@@ -55,6 +55,7 @@ public struct LSPKHeader: Hashable, Equatable, Sendable {
         } else {
             0
         }
+
         return LSPKHeader(
             fileListOffset: 0,
             fileListSize: 0,

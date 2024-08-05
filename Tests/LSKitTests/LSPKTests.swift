@@ -35,11 +35,12 @@ final class LSPKTests: XCTestCase {
         let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
         let data = try ModLSPK(url: url)
 
-        try data.unpack(url: URL.homeDirectory.appendingPathComponent("mod"))
+        let directory = URL.homeDirectory.appendingPathComponent("mod")
+        try data.unpack(url: directory)
     }
 
     func testPackAndRead() throws {
-        let configuration = LSPKConfiguration(version: .v18, compressionMethod: .lz4, priority: 1)
+        let configuration = LSPKConfiguration(version: .v18, compressionMethod: .lz4)
         let directory = URL.homeDirectory.appendingPathComponent("mod")
         let file = URL.homeDirectory.appendingPathComponent("mod.pak")
         let generatedPak = try LSPK.pack(to: file, from: directory, configuration: configuration)
@@ -51,10 +52,8 @@ final class LSPKTests: XCTestCase {
         XCTAssertEqual(generatedPak.header.numberOfParts, readPak.header.numberOfParts)
         XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
         XCTAssertEqual(generatedPak.header.priority, readPak.header.priority)
-        // XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
+        XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
         XCTAssertEqual(generatedPak.header.md5, readPak.header.md5)
-        // XCTAssertEqual(generatedPak.header.numberOfFiles, readPak.header.numberOfFiles)
-        // XCTAssertEqual(generatedPak.header.dataOffset, readPak.header.dataOffset)
         // Check entries
         XCTAssertEqual(generatedPak.entries.sorted(), readPak.entries.sorted())
     }
