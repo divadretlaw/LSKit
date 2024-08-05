@@ -153,7 +153,7 @@ public struct LSPK: LSPKProtocol {
 
         // Write empty header to reserve space
         let headerOffset = try pak.offset()
-        guard let actualHeader = configuration.emptyHeader else {
+        guard let actualHeader = configuration.emptyHeader() else {
             throw LSPKError.invalidFile("Unable to encode header with desired version")
         }
         try pak.write(contentsOf: encoder.encode(actualHeader))
@@ -193,7 +193,7 @@ public struct LSPK: LSPKProtocol {
                 archivePart: 0, // TODO: What value to set?
                 crc: UInt32(crc),
                 compressionMethod: configuration.compressionMethod,
-                compressionLevel: .default, // TODO: Supported different levels
+                compressionLevel: .default, // TODO: Support other compression levels
                 offsetInFile: offset,
                 sizeOnDisk: UInt64(compressedData.count),
                 uncompressedSize: UInt64(uncompressedData.count)
@@ -240,11 +240,11 @@ public struct LSPK: LSPKProtocol {
             fileListOffset: fileListOffset,
             fileListSize: UInt32(entries.count),
             flags: flags,
-            priority: 0,
+            priority: configuration.priority,
             md5: md5,
             numberOfParts: entries.count,
             numberOfFiles: entries.count,
-            dataOffset: configuration.version.headerType.size + 8
+            dataOffset: configuration.version.headerType.size + 8 // Signature + Version
         )
         guard let actualHeader = configuration.version.headerType.init(header: header) else {
             throw LSPKError.invalidFile("Unable to encode header with desired version")
