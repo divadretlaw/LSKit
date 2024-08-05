@@ -36,7 +36,7 @@ public struct ModLSPK: LSPKProtocol {
         let base = try LSPK(url: url)
         try self.init(base: base)
     }
-    
+
     init(base: LSPK) throws {
         self.base = base
 
@@ -59,9 +59,9 @@ public struct ModLSPK: LSPKProtocol {
     public func unpack(url: URL) throws {
         try base.unpack(url: url)
     }
-    
-    public static func pack(to url: URL, from directory: URL, version: LSPKVersion) throws -> Self {
-        let base = try LSPK.pack(to: url, from: directory, version: version)
+
+    public static func pack(to url: URL, from directory: URL, configuration: LSPKConfiguration) throws -> Self {
+        let base = try LSPK.pack(to: url, from: directory, configuration: configuration)
         return try ModLSPK(base: base)
     }
 }

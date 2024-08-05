@@ -37,17 +37,17 @@ public protocol LSPKProtocol: Hashable, Equatable, Sendable {
     ///
     /// - Parameter url: The location where the unpacked data should be
     func unpack(url: URL) throws
-    
+
     /// Pack a directory as LSPK
     ///
     /// - Parameters:
     ///   - url: The destination of the pak file.
     ///   - directory: The directory the pak file should be created from.
-    ///   - version: The desired version of the pak file.
+    ///   - configuration: How the PAK should be created.
     ///
     /// > Warning:
     /// > This is a work in progress
-    static func pack(to url: URL, from directory: URL, version: LSPKVersion) throws -> Self
+    static func pack(to url: URL, from directory: URL, configuration: LSPKConfiguration) throws -> Self
 }
 
 public extension LSPKProtocol {
@@ -136,8 +136,8 @@ public struct LSPK: LSPKProtocol {
             try content.write(to: file)
         }
     }
-    
-    public static func pack(to url: URL, from directory: URL, version: LSPKVersion) throws -> Self {
+
+    public static func pack(to url: URL, from directory: URL, configuration: LSPKConfiguration) throws -> Self {
         let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey])
         guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey], options: [.skipsHiddenFiles], errorHandler: nil) else {
             throw CocoaError(.fileReadUnknown)
@@ -149,11 +149,11 @@ public struct LSPK: LSPKProtocol {
         encoder.stringEncodingStrategy = .fixedSize(256)
 
         try pak.write(contentsOf: Data([0x4C, 0x53, 0x50, 0x4B]))
-        try pak.write(contentsOf: encoder.encode(version))
+        try pak.write(contentsOf: encoder.encode(configuration.version))
 
         // Write empty header to reserve space
         let headerOffset = try pak.offset()
-        guard let actualHeader = version.headerType.init(header: LSPKHeader.empty(version: version)) else {
+        guard let actualHeader = configuration.emptyHeader else {
             throw LSPKError.invalidFile("Unable to encode header with desired version")
         }
         try pak.write(contentsOf: encoder.encode(actualHeader))
@@ -168,13 +168,22 @@ public struct LSPK: LSPKProtocol {
             }
 
             let uncompressedData = try Data(contentsOf: url)
-            let compressedData = try uncompressedData.compressed(using: .lz4raw)
+            let compressedData = switch configuration.compressionMethod {
+            case .none:
+                uncompressedData
+            case .zlib:
+                try uncompressedData.compressed(using: .zlib)
+            case .lz4:
+                try uncompressedData.compressed(using: .lz4raw)
+            case .zstd:
+                throw LSPKError.notSupported("Compression Method ZSTD is currently not supported")
+            }
 
             let offset = try pak.offset()
             try pak.write(contentsOf: compressedData)
 
-            let crc: UInt32 = if version.hasCrc {
-                0  // TODO: Calculate CRC
+            let crc: UInt = if configuration.version.hasCrc {
+                compressedData.crc32()
             } else {
                 0
             }
@@ -182,9 +191,9 @@ public struct LSPK: LSPKProtocol {
             let entry = LSPKFileEntry(
                 name: url.path,
                 archivePart: 0, // TODO: What value to set?
-                crc: crc,
-                compressionMethod: version.fileEntryCompressionMethod,
-                compressionLevel: version.fileEntryCompressionLevel,
+                crc: UInt32(crc),
+                compressionMethod: configuration.compressionMethod,
+                compressionLevel: .default, // TODO: Supported different levels
                 offsetInFile: offset,
                 sizeOnDisk: UInt64(compressedData.count),
                 uncompressedSize: UInt64(uncompressedData.count)
@@ -203,7 +212,7 @@ public struct LSPK: LSPKProtocol {
         // Write file entries
         var fileListData = Data()
         for entry in entries {
-            guard let actualEntry = version.fileEntryType.init(entry: entry) else {
+            guard let actualEntry = configuration.version.fileEntryType.init(entry: entry) else {
                 throw LSPKError.invalidFile("Unable to encode file entry with desired version")
             }
 
@@ -211,7 +220,7 @@ public struct LSPK: LSPKProtocol {
         }
 
         // Write actual file entry list metadata to reserve space
-        if version.hasCompressedFileEntryList {
+        if configuration.version.hasCompressedFileEntryList {
             try pak.write(contentsOf: Data(UInt32(entries.count)))
             let compressedData = try fileListData.compressed(using: .lz4raw)
             try pak.write(contentsOf: Data(UInt32(compressedData.count)))
@@ -221,7 +230,7 @@ public struct LSPK: LSPKProtocol {
         }
 
         // Write actual header
-        let flags: UInt8 = if version.hasCompressedFileEntryList {
+        let flags: UInt8 = if configuration.version.hasCompressedFileEntryList {
             LSPKFileEntry.CompressionMethod.lz4.rawValue | LSPKFileEntry.CompressionLevel.default.rawValue
         } else {
             0
@@ -235,15 +244,15 @@ public struct LSPK: LSPKProtocol {
             md5: md5,
             numberOfParts: entries.count,
             numberOfFiles: entries.count,
-            dataOffset: version.headerType.size + 8
+            dataOffset: configuration.version.headerType.size + 8
         )
-        guard let actualHeader = version.headerType.init(header: header) else {
+        guard let actualHeader = configuration.version.headerType.init(header: header) else {
             throw LSPKError.invalidFile("Unable to encode header with desired version")
         }
         try pak.seek(toOffset: headerOffset)
         try pak.write(contentsOf: encoder.encode(actualHeader))
 
         // Create LSPK instance
-        return Self(url: url, version: version, header: header, entries: entries)
+        return Self(url: url, version: configuration.version, header: header, entries: entries)
     }
 }
