@@ -32,29 +32,38 @@ final class LSPKTests: XCTestCase {
     }
 
     func testUnpack() throws {
-        let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
-        let data = try ModLSPK(url: url)
+        try XCTTemporaryDirectory { directory in
+            let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
+            let data = try ModLSPK(url: url)
 
-        let directory = URL.homeDirectory.appendingPathComponent("mod")
-        try data.unpack(url: directory)
+            let directory = directory.appending(path: "Gold Weight Zero")
+            try data.unpack(url: directory)
+        }
     }
 
     func testPackAndRead() throws {
-        let configuration = LSPKConfiguration(version: .v18, compressionMethod: .lz4)
-        let directory = URL.homeDirectory.appendingPathComponent("mod")
-        let file = URL.homeDirectory.appendingPathComponent("mod.pak")
-        let generatedPak = try LSPK.pack(to: file, from: directory, configuration: configuration)
+        try XCTTemporaryDirectory { directory in
+            let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
+            let pak = try LSPK(url: url)
+            let directory = directory.appending(path: "Gold Weight Zero")
+            try pak.unpack(url: directory)
 
-        let readPak = try LSPK(url: generatedPak.url)
+            let configuration = LSPKConfiguration(version: .v18, compressionMethod: .lz4)
 
-        // Check Header
-        XCTAssertEqual(generatedPak.header.fileListOffset, readPak.header.fileListOffset)
-        XCTAssertEqual(generatedPak.header.numberOfParts, readPak.header.numberOfParts)
-        XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
-        XCTAssertEqual(generatedPak.header.priority, readPak.header.priority)
-        XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
-        XCTAssertEqual(generatedPak.header.md5, readPak.header.md5)
-        // Check entries
-        XCTAssertEqual(generatedPak.entries.sorted(), readPak.entries.sorted())
+            let file = URL.homeDirectory.appendingPathComponent("GWZ.pak")
+            let generatedPak = try LSPK.pack(to: file, from: directory, configuration: configuration)
+
+            let readPak = try LSPK(url: generatedPak.url)
+
+            // Check Header
+            XCTAssertEqual(generatedPak.header.fileListOffset, readPak.header.fileListOffset)
+            XCTAssertEqual(generatedPak.header.numberOfParts, readPak.header.numberOfParts)
+            XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
+            XCTAssertEqual(generatedPak.header.priority, readPak.header.priority)
+            XCTAssertEqual(generatedPak.header.flags, readPak.header.flags)
+            XCTAssertEqual(generatedPak.header.md5, readPak.header.md5)
+            // Check entries
+            XCTAssertEqual(generatedPak.entries.sorted(), readPak.entries.sorted())
+        }
     }
 }
