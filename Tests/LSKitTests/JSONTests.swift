@@ -30,7 +30,16 @@ final class JSONTests: XCTestCase {
 
     func testModInfoEncode() throws {
         let md5 = try XCTUnwrap(MD5(md5String: "09f7e02f1290be211da707a266f153b3"))
-        let mod = ModInfo.Mod(uuid: UUID(), name: "TestMod", description: "A test mod", folder: "TestMod", version: "1", author: "divadretlaw", created: .now, group: UUID())
+        let mod = ModInfo.Mod(
+            uuid: UUID(),
+            name: "TestMod",
+            description: "A test mod",
+            folder: "TestMod",
+            version: "1",
+            author: "divadretlaw",
+            created: .now,
+            group: UUID()
+        )
         let modInfo = ModInfo(mods: [mod], md5: md5)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

@@ -41,19 +41,21 @@ public protocol LSPKProtocol: Hashable, Equatable, Sendable {
     /// Pack a directory as LSPK
     ///
     /// - Parameters:
-    ///   - url: The destination of the pak file.
     ///   - directory: The directory the pak file should be created from.
+    ///   - url: The destination of the pak file.
     ///   - configuration: How the PAK should be created.
-    ///
-    /// > Warning:
-    /// > This is a work in progress
-    static func pack(to url: URL, from directory: URL, configuration: LSPKConfiguration) throws -> Self
+    static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration) throws -> Self
 }
 
 public extension LSPKProtocol {
     init?(url: URL?) throws {
         guard let url else { return nil }
         try self.init(url: url)
+    }
+
+    static func pack(directory: URL, configuration: LSPKConfiguration) throws -> Self {
+        let url = directory.appendingPathExtension("pak")
+        return try pack(directory: directory, to: url, configuration: configuration)
     }
 }
 

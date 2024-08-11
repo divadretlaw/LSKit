@@ -60,8 +60,8 @@ public struct ModLSPK: LSPKProtocol {
         try base.unpack(url: url)
     }
 
-    public static func pack(to url: URL, from directory: URL, configuration: LSPKConfiguration) throws -> Self {
-        let base = try LSPK.pack(to: url, from: directory, configuration: configuration)
+    public static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration) throws -> Self {
+        let base = try LSPK.pack(directory: directory, to: url, configuration: configuration)
         return try ModLSPK(base: base)
     }
 }

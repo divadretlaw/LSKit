@@ -50,8 +50,8 @@ final class LSPKTests: XCTestCase {
 
             let configuration = LSPKConfiguration(version: .v18, compressionMethod: .lz4)
 
-            let file = URL.homeDirectory.appendingPathComponent("GWZ.pak")
-            let generatedPak = try LSPK.pack(to: file, from: directory, configuration: configuration)
+            let file = directory.appendingPathComponent("GWZ.pak")
+            let generatedPak = try LSPK.pack(directory: directory, to: file, configuration: configuration)
 
             let readPak = try LSPK(url: generatedPak.url)
 
@@ -65,5 +65,25 @@ final class LSPKTests: XCTestCase {
             // Check entries
             XCTAssertEqual(generatedPak.entries.sorted(), readPak.entries.sorted())
         }
+    }
+
+    func testReadAllMods() throws {
+        let bg3 = URL.homeDirectory.appending(path: "Library/Application Support/Baldur's Gate 3", directoryHint: .isDirectory)
+        guard try bg3.checkResourceIsReachable() else {
+            print("Baldur's Gate 3 is not installed on this machine")
+            return
+        }
+
+        let mods = bg3.appending(path: "Mods", directoryHint: .isDirectory)
+        guard let enumerator = FileManager.default.enumerator(at: mods, includingPropertiesForKeys: nil) else {
+            return
+        }
+
+        var lspks: [LSPK] = []
+        for case let url as URL in enumerator where url.pathExtension == "pak" {
+            let lspk = try LSPK(url: url)
+            lspks.append(lspk)
+        }
+        print(lspks.count)
     }
 }

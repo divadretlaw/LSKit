@@ -9,7 +9,7 @@ import Foundation
 import BinaryUtils
 
 extension LSPK {
-    public static func pack(to url: URL, from directory: URL, configuration: LSPKConfiguration) throws -> Self {
+    public static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration) throws -> Self {
         let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey])
         guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey], options: [.skipsHiddenFiles], errorHandler: nil) else {
             throw CocoaError(.fileReadUnknown)
@@ -138,7 +138,7 @@ extension LSPK {
         try pak.seek(toOffset: headerOffset)
         try pak.write(contentsOf: encoder.encode(actualHeader))
 
-        // Create LSPK instance
+        // Create LSPK
         return Self(url: url, version: configuration.version, header: header, entries: entries)
     }
 }

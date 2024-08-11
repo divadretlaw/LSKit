@@ -14,7 +14,7 @@ public struct LSPKConfiguration: Sendable {
 
     public init(
         version: LSPKVersion,
-        compressionMethod: LSPKFileEntry.CompressionMethod,
+        compressionMethod: LSPKFileEntry.CompressionMethod = .lz4,
         priority: UInt8 = 0
     ) {
         self.version = version

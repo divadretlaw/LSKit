@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum LSPKVersion: UInt32, Codable, Sendable {
+public enum LSPKVersion: UInt32, Hashable, Equatable, Codable, Sendable {
     case v10 = 10
     case v15 = 15
     case v16 = 16
