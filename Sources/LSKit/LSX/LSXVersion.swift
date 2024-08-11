@@ -41,7 +41,7 @@ public struct LSXVersion: Hashable, Equatable, Codable, Sendable, XmlConvertible
 
     // MARK: - XmlConvertible
 
-    public func xml() -> String {
+    public var xmlDescription: String {
         "<version major=\"\(major ?? "")\" minor=\"\(minor ?? "")\" revision=\"\(revision ?? "")\" build=\"\(build ?? "")\"/>"
     }
 

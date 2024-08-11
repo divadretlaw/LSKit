@@ -57,17 +57,15 @@ public struct LSX: LSXProtocol, Codable {
 
     // MARK: - XmlConvertible
 
-    public func xml() -> String {
+    public var xmlDescription: String {
         let regions = regions
-            .map { value in
-                value.xml()
-            }
+            .map(\.xmlDescription)
             .joined(separator: "\n")
 
         return """
         <?xml version="1.0" encoding="UTF-8"?>
         <save>
-            \(version.xml())
+            \(version.xmlDescription)
         \(regions.indent())
         </save>
         """

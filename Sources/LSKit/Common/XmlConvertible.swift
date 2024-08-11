@@ -9,5 +9,5 @@ import Foundation
 
 public protocol XmlConvertible {
     /// A XML representation of this instance.
-    func xml() -> String
+    var xmlDescription: String { get }
 }

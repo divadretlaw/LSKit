@@ -24,11 +24,9 @@ public struct LSXNode: Hashable, Equatable, Codable, Sendable, XmlConvertible, C
 
     // MARK: - XmlConvertible
 
-    public func xml() -> String {
+    public var xmlDescription: String {
         let attributes = attributes
-            .map { value in
-                value.xml()
-            }
+            .map(\.xmlDescription)
             .joined(separator: "\n")
 
         let children = xmlChildren()
@@ -44,9 +42,7 @@ public struct LSXNode: Hashable, Equatable, Codable, Sendable, XmlConvertible, C
     private func xmlChildren() -> String {
         guard !children.isEmpty else { return "" }
         let children = children
-            .map { value in
-                value.xml()
-            }
+            .map(\.xmlDescription)
             .joined(separator: "\n")
 
         return """

@@ -26,11 +26,9 @@ public struct LSXRegion: Hashable, Equatable, Codable, Sendable, XmlConvertible,
 
     // MARK: - XmlConvertible
 
-    public func xml() -> String {
+    public var xmlDescription: String {
         let nodes = nodes
-            .map { value in
-                value.xml()
-            }
+            .map(\.xmlDescription)
             .joined(separator: "\n")
 
         return """
