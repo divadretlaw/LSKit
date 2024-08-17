@@ -7,6 +7,7 @@
 
 import Foundation
 import BinaryUtils
+import libzstd
 
 extension LSPK {
     public static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration) throws -> Self {
@@ -61,7 +62,17 @@ extension LSPK {
             case .lz4:
                 try uncompressedData.compressed(using: .lz4raw)
             case .zstd:
-                throw LSPKError.notSupported("Compression Method ZSTD is currently not supported")
+                try uncompressedData.withUnsafeBytes { sourceBuffer -> Data in
+                    let capacity = Swift.max(uncompressedData.count, 128)
+                    let level = ZSTD_defaultCLevel()
+                    
+                    let destinationBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
+                    let compressedSize = ZSTD_compress(destinationBuffer, capacity, sourceBuffer.baseAddress, uncompressedData.count, level)
+                    if ZSTD_isError(compressedSize) != 0 {
+                        throw CocoaError(CocoaError.Code(rawValue: 5377))
+                    }
+                    return Data(bytesNoCopy: destinationBuffer, count: compressedSize, deallocator: .free)
+                }
             }
 
             let offset = try pak.offset()
@@ -82,7 +93,7 @@ extension LSPK {
                 archivePart: 0, // TODO: What value to set?
                 crc: UInt32(crc),
                 compressionMethod: configuration.compressionMethod,
-                compressionLevel: .fast, // TODO: Support other compression levels?
+                compressionLevel: configuration.compressionLevel,
                 offsetInFile: offset,
                 sizeOnDisk: UInt64(compressedData.count),
                 uncompressedSize: UInt64(uncompressedData.count)

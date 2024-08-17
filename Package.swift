@@ -17,13 +17,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/divadretlaw/BinaryUtils.git", from: "1.1.0")
+        .package(url: "https://github.com/divadretlaw/BinaryUtils.git", from: "1.1.0"),
+        .package(url: "https://github.com/facebook/zstd", from: "1.5.6")
     ],
     targets: [
         .target(
             name: "LSKit",
             dependencies: [
-                .product(name: "BinaryUtils", package: "BinaryUtils")
+                .product(name: "BinaryUtils", package: "BinaryUtils"),
+                .product(name: "libzstd", package: "zstd")
             ]
         ),
         .testTarget(

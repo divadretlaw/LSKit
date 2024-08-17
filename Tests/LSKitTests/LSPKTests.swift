@@ -43,15 +43,15 @@ final class LSPKTests: XCTestCase {
 
     func testPackAndRead() throws {
         try XCTTemporaryDirectory { directory in
+            let unpacked = directory.appending(path: "Gold Weight Zero")
+            let repacked = directory.appendingPathComponent("GWZ.pak")
+            
             let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
             let pak = try LSPK(url: url)
-            let directory = directory.appending(path: "Gold Weight Zero")
-            try pak.unpack(url: directory)
+            try pak.unpack(url: unpacked)
 
             let configuration = LSPKConfiguration(version: .v18, compressionMethod: .lz4)
-
-            let file = directory.appendingPathComponent("GWZ.pak")
-            let generatedPak = try LSPK.pack(directory: directory, to: file, configuration: configuration)
+            let generatedPak = try LSPK.pack(directory: unpacked, to: repacked, configuration: configuration)
 
             let readPak = try LSPK(url: generatedPak.url)
 
@@ -84,6 +84,31 @@ final class LSPKTests: XCTestCase {
             let lspk = try LSPK(url: url)
             lspks.append(lspk)
         }
-        print(lspks.count)
+        print("Number of mods:", lspks.count)
+    }
+    
+    func testZSTD() throws {
+        try XCTTemporaryDirectory { directory in
+            let directory = directory.appending(path: "ZSTD-Test")
+            let unpacked = directory.appending(path: "unpacked")
+            let repacked = directory.appending(path: "repacked.pak")
+            
+            // Unpack a mod
+            let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
+            let data = try LSPK(url: url)
+            try data.unpack(url: unpacked)
+            // Package the unpacked mod, but with ZSTD compression
+            let configuration = LSPKConfiguration(version: .v18, compressionMethod: .zstd, priority: 0)
+            let generatedPak = try LSPK.pack(directory: unpacked, to: repacked, configuration: configuration)
+            let readPak = try ModLSPK(url: generatedPak.url)
+            // Check if data is still intact
+            XCTAssertEqual(readPak.version, .v18)
+            XCTAssertEqual(readPak.header.numberOfParts, 1)
+            let moduleInfo = try XCTUnwrap(readPak.meta.moduleInfo)
+            let publishVersion = try XCTUnwrap(moduleInfo.publishVersion)
+            XCTAssertEqual(publishVersion.uuid, "GOLDWEIG-HTZE-RO12-4444-deeeeeeeeeef")
+            XCTAssertEqual(publishVersion.name, "Gold Weight Zero")
+            XCTAssertEqual(publishVersion.folder, "Gold Weight Zero")
+        }
     }
 }

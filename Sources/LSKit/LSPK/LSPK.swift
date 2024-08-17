@@ -7,6 +7,7 @@
 
 import Foundation
 import BinaryUtils
+import libzstd
 
 public protocol LSPKProtocol: Hashable, Equatable, Sendable {
     /// The location of the file
@@ -125,7 +126,21 @@ public struct LSPK: LSPKProtocol {
             }
             return try compressed.decompressed(using: .lz4raw(Int(entry.uncompressedSize)))
         case .zstd:
-            throw LSPKError.notSupported("Compression Method ZSTD is currently not supported")
+            guard let compressed = try fileHandle.read(fromByteOffset: entry.offsetInFile, upToCount: entry.sizeOnDisk) else {
+                return nil
+            }
+            return try compressed.withUnsafeBytes { sourceBuffer -> Data? in
+                let maxBound = ZSTD_getFrameContentSize(sourceBuffer.baseAddress, compressed.count)
+                if maxBound == ZSTD_CONTENTSIZE_ERROR || maxBound == ZSTD_CONTENTSIZE_UNKNOWN {
+                    throw CocoaError(CocoaError.Code(rawValue: 5377))
+                }
+                guard maxBound > 0 else {
+                    throw CocoaError(CocoaError.Code(rawValue: 5377))
+                }
+                let destinationBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(maxBound))
+                let decompressedSize = ZSTD_decompress(destinationBuffer, Int(maxBound), sourceBuffer.baseAddress, compressed.count)
+                return Data(bytesNoCopy: destinationBuffer, count: decompressedSize, deallocator: .free)
+            }
         }
     }
 

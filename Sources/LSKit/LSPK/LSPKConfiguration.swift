@@ -10,6 +10,7 @@ import Foundation
 public struct LSPKConfiguration: Sendable {
     public let version: LSPKVersion
     public let compressionMethod: LSPKFileEntry.CompressionMethod
+    let compressionLevel: LSPKFileEntry.CompressionLevel
     public let priority: UInt8
 
     public init(
@@ -20,6 +21,17 @@ public struct LSPKConfiguration: Sendable {
         self.version = version
         self.compressionMethod = compressionMethod
         self.priority = priority
+        
+        switch compressionMethod {
+        case .none:
+            compressionLevel = .default
+        case .zlib:
+            compressionLevel = .default
+        case .lz4:
+            compressionLevel = .fast
+        case .zstd:
+            compressionLevel = .default
+        }
     }
 
     func emptyHeader() -> (any LSPKHeaderRepresentable)? {
