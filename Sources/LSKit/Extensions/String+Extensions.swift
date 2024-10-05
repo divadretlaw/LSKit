@@ -8,10 +8,10 @@
 import Foundation
 
 extension String {
-    func indent() -> String {
+    func indent(prefix: String = "\t", separator: Character = "\n") -> String {
         self
-            .split(separator: "\n")
-            .map { "\t\($0)" }
-            .joined(separator: "\n")
+            .split(separator: separator)
+            .map { "\(prefix)\($0)" }
+            .joined(separator: "\(separator)")
     }
 }

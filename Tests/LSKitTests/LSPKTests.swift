@@ -31,27 +31,31 @@ final class LSPKTests: XCTestCase {
         XCTAssertEqual(publishVersion.folder, "Gold Weight Zero")
     }
 
-    func testUnpack() throws {
-        try XCTTemporaryDirectory { directory in
+    func testUnpack() async throws {
+        try await XCTTemporaryDirectory { directory in
             let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
             let data = try ModLSPK(url: url)
 
             let directory = directory.appending(path: "Gold Weight Zero")
-            try data.unpack(url: directory)
+            try await data.unpack(url: directory) { progress in
+                print(progress)
+            }
         }
     }
 
-    func testPackAndRead() throws {
-        try XCTTemporaryDirectory { directory in
+    func testPackAndRead() async throws {
+        try await XCTTemporaryDirectory { directory in
             let unpacked = directory.appending(path: "Gold Weight Zero")
             let repacked = directory.appendingPathComponent("GWZ.pak")
-            
+
             let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
             let pak = try LSPK(url: url)
-            try pak.unpack(url: unpacked)
+            try await pak.unpack(url: unpacked)
 
             let configuration = LSPKConfiguration(version: .v18, compressionMethod: .lz4)
-            let generatedPak = try LSPK.pack(directory: unpacked, to: repacked, configuration: configuration)
+            let generatedPak = try await LSPK.pack(directory: unpacked, to: repacked, configuration: configuration) { progress in
+                print(progress)
+            }
 
             let readPak = try LSPK(url: generatedPak.url)
 
@@ -86,20 +90,20 @@ final class LSPKTests: XCTestCase {
         }
         print("Number of mods:", lspks.count)
     }
-    
-    func testZSTD() throws {
-        try XCTTemporaryDirectory { directory in
+
+    func testZSTD() async throws {
+        try await XCTTemporaryDirectory { directory in
             let directory = directory.appending(path: "ZSTD-Test")
             let unpacked = directory.appending(path: "unpacked")
             let repacked = directory.appending(path: "repacked.pak")
-            
+
             // Unpack a mod
             let url = try XCTUnwrap(Bundle.module.url(forResource: "Gold Weight Zero", withExtension: "pak"))
             let data = try LSPK(url: url)
-            try data.unpack(url: unpacked)
+            try await data.unpack(url: unpacked)
             // Package the unpacked mod, but with ZSTD compression
             let configuration = LSPKConfiguration(version: .v18, compressionMethod: .zstd, priority: 0)
-            let generatedPak = try LSPK.pack(directory: unpacked, to: repacked, configuration: configuration)
+            let generatedPak = try await LSPK.pack(directory: unpacked, to: repacked, configuration: configuration)
             let readPak = try ModLSPK(url: generatedPak.url)
             // Check if data is still intact
             XCTAssertEqual(readPak.version, .v18)

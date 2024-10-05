@@ -23,7 +23,7 @@ public protocol LSPKProtocol: Hashable, Equatable, Sendable {
     var entries: [LSPKFileEntry] { get }
 
     /// Load the LSPK file from the given url
-    /// 
+    ///
     /// - Parameter url: The location of the file
     init(url: URL) throws
 
@@ -36,8 +36,10 @@ public protocol LSPKProtocol: Hashable, Equatable, Sendable {
 
     /// Unpack the LSPK to the given location
     ///
-    /// - Parameter url: The location where the unpacked data should be
-    func unpack(url: URL) throws
+    /// - Parameters:
+    ///     - url: The location where the unpacked data should be
+    ///     - progress: Progress callback
+    func unpack(url: URL, progress: ((Double) -> Void)?) async throws
 
     /// Pack a directory as LSPK
     ///
@@ -45,7 +47,8 @@ public protocol LSPKProtocol: Hashable, Equatable, Sendable {
     ///   - directory: The directory the pak file should be created from.
     ///   - url: The destination of the pak file.
     ///   - configuration: How the PAK should be created.
-    static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration) throws -> Self
+    ///   - progress: Progress callback
+    static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration, progress: ((Double) -> Void)?) async throws -> Self
 }
 
 public extension LSPKProtocol {
@@ -54,9 +57,17 @@ public extension LSPKProtocol {
         try self.init(url: url)
     }
 
-    static func pack(directory: URL, configuration: LSPKConfiguration) throws -> Self {
+    func unpack(url: URL) async throws {
+        try await unpack(url: url, progress: nil)
+    }
+
+    static func pack(directory: URL, configuration: LSPKConfiguration) async throws -> Self {
         let url = directory.appendingPathExtension("pak")
-        return try pack(directory: directory, to: url, configuration: configuration)
+        return try await pack(directory: directory, to: url, configuration: configuration)
+    }
+
+    static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration) async throws -> Self {
+        try await pack(directory: directory, to: url, configuration: configuration, progress: nil)
     }
 }
 
@@ -141,16 +152,6 @@ public struct LSPK: LSPKProtocol {
                 let decompressedSize = ZSTD_decompress(destinationBuffer, Int(maxBound), sourceBuffer.baseAddress, compressed.count)
                 return Data(bytesNoCopy: destinationBuffer, count: decompressedSize, deallocator: .free)
             }
-        }
-    }
-
-    public func unpack(url: URL) throws {
-        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-        for entry in entries {
-            guard let content = try contentsOf(entry: entry) else { continue }
-            let file = url.appendingPathComponent(entry.name)
-            try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try content.write(to: file)
         }
     }
 }

@@ -56,12 +56,17 @@ public struct ModLSPK: LSPKProtocol {
         try base.contentsOf(entry: entry)
     }
 
-    public func unpack(url: URL) throws {
-        try base.unpack(url: url)
+    public func unpack(url: URL, progress: ((Double) -> Void)?) async throws {
+        try await base.unpack(url: url, progress: progress)
     }
 
-    public static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration) throws -> Self {
-        let base = try LSPK.pack(directory: directory, to: url, configuration: configuration)
+    public static func pack(
+        directory: URL,
+        to url: URL,
+        configuration: LSPKConfiguration,
+        progress: ((Double) -> Void)?
+    ) async throws -> ModLSPK {
+        let base = try await LSPK.pack(directory: directory, to: url, configuration: configuration, progress: progress)
         return try ModLSPK(base: base)
     }
 }

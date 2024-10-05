@@ -21,7 +21,7 @@ public struct LSPKConfiguration: Sendable {
         self.version = version
         self.compressionMethod = compressionMethod
         self.priority = priority
-        
+
         switch compressionMethod {
         case .none:
             compressionLevel = .default

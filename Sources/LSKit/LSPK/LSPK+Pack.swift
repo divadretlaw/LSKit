@@ -10,7 +10,14 @@ import BinaryUtils
 import libzstd
 
 extension LSPK {
-    public static func pack(directory: URL, to url: URL, configuration: LSPKConfiguration) throws -> Self {
+    public static func pack(
+        directory: URL,
+        to url: URL,
+        configuration: LSPKConfiguration,
+        progress: ((Double) -> Void)?
+    ) async throws -> Self {
+        try Task.checkCancellation()
+
         let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey])
         guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey], options: [.skipsHiddenFiles], errorHandler: nil) else {
             throw CocoaError(.fileReadUnknown)
@@ -22,6 +29,9 @@ extension LSPK {
         encoder.stringEncodingStrategy = .fixedSize(256)
 
         // MARK: - Header
+
+        try Task.checkCancellation()
+        progress?(0.0)
 
         // Write LSPK signature
         try pak.write(contentsOf: Data([0x4C, 0x53, 0x50, 0x4B]))
@@ -37,6 +47,9 @@ extension LSPK {
 
         // MARK: - File Entries
 
+        try Task.checkCancellation()
+        progress?(0.01)
+
         // Determine entry file urls
         var entryUrls: [URL] = []
         for case let entryUrl as URL in enumerator {
@@ -50,9 +63,15 @@ extension LSPK {
             lhs.absoluteString < rhs.absoluteString
         }
 
+        let total = Double(entryUrls.count) + 1 + 1 // Files + Header + File Entry List
+
         // Write contents of file entries
         var entries: [LSPKFileEntry] = []
         for entryUrl in entryUrls {
+            try Task.checkCancellation()
+            progress?(Double(entries.count + 1) / total)
+            await Task.yield()
+
             let uncompressedData = try Data(contentsOf: entryUrl)
             let compressedData = switch configuration.compressionMethod {
             case .none:
@@ -65,7 +84,7 @@ extension LSPK {
                 try uncompressedData.withUnsafeBytes { sourceBuffer -> Data in
                     let capacity = Swift.max(uncompressedData.count, 128)
                     let level = ZSTD_defaultCLevel()
-                    
+
                     let destinationBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: capacity)
                     let compressedSize = ZSTD_compress(destinationBuffer, capacity, sourceBuffer.baseAddress, uncompressedData.count, level)
                     if ZSTD_isError(compressedSize) != 0 {
@@ -103,6 +122,9 @@ extension LSPK {
 
         // MARK: - File Entry List
 
+        try Task.checkCancellation()
+        progress?(Double(entries.count + 1) / total)
+
         let fileListOffset = try pak.offset()
         // Gather file entry list data
         var joinedEntryData = Data()
@@ -128,9 +150,7 @@ extension LSPK {
         try pak.write(contentsOf: fileListData)
 
         // MD5 is computed over the contents of all files in an alphabetically sorted order
-        let md5 = try MD5(urls: entryUrls.sorted { lhs, rhs in
-            lhs.absoluteString < rhs.absoluteString
-        })
+        let md5 = try MD5(urls: entryUrls.sorted(by: \.absoluteString))
 
         // Write actual header
         let header = LSPKHeader(
@@ -148,6 +168,8 @@ extension LSPK {
         }
         try pak.seek(toOffset: headerOffset)
         try pak.write(contentsOf: encoder.encode(actualHeader))
+
+        progress?(1)
 
         // Create LSPK
         return Self(url: url, version: configuration.version, header: header, entries: entries)
